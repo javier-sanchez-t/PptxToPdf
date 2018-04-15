@@ -5,12 +5,14 @@
  */
 package com.javic.pptxtopdf.util;
 
-import com.lowagie.text.Document;
-import com.lowagie.text.DocumentException;
-import com.lowagie.text.Paragraph;
-import com.lowagie.text.pdf.PdfPCell;
-import com.lowagie.text.pdf.PdfPTable;
-import com.lowagie.text.pdf.PdfWriter;
+import com.itextpdf.text.Font.FontFamily;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.Image;
 import org.apache.poi.xslf.usermodel.XMLSlideShow;
 import org.apache.poi.xslf.usermodel.XSLFSlide;
 
@@ -33,13 +35,13 @@ public class Convert {
     // http://javapro.org/castellano/2017/07/25/convertir-archivo-powerpoint-pdf-java/
     public static void main(String[] args) {
         try {
-            Convert.convertPPTToPDF("C:\\Users\\acer\\Desktop\\test.pptx", "C:\\Users\\acer\\Desktop\\p1.pdf", ".pptx", StaticConstants.PORTRAIT);
+            Convert.convertPPTToPDF("C:\\Users\\acer\\Desktop\\test.pptx", "C:\\Users\\acer\\Desktop\\p1.pdf", ".pptx", StaticConstants.PORTRAIT, 6);
         } catch (Exception ex) {
             Logger.getLogger(Convert.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    public static void convertPPTToPDF(String sourcePathFile, String destinationPath, String fileType, String orientation) throws Exception {
+    public static void convertPPTToPDF(String sourcePathFile, String destinationPath, String fileType, String orientation, int fontSize) throws Exception {
         double zoom = 2;
         AffineTransform at = new AffineTransform();
         at.setToScale(zoom, zoom);
@@ -55,7 +57,7 @@ public class Convert {
         pdfWriter.open();
         pdfDocument.open();
         Dimension pgsize = null;
-        com.lowagie.text.Image slideImage = null;
+        Image slideImage = null;
         BufferedImage img = null;
 
         if (fileType.equalsIgnoreCase(".pptx")) {
@@ -64,9 +66,9 @@ public class Convert {
 
             //pdfDocument.setPageSize(new com.lowagie.text.Rectangle((float) pgsize.getWidth(), (float) pgsize.getHeight()));
             if (orientation.equals(StaticConstants.LANDSCAPE)) {
-                pdfDocument.setPageSize(new com.lowagie.text.Rectangle((float) 792, (float) 612));
-            }else{
-                 pdfDocument.setPageSize(new com.lowagie.text.Rectangle((float) 612, (float) 792));
+                pdfDocument.setPageSize(new Rectangle((float) 792, (float) 612));
+            } else {
+                pdfDocument.setPageSize(new Rectangle((float) 612, (float) 792));
             }
             pdfWriter.open();
             pdfDocument.open();
@@ -85,7 +87,7 @@ public class Convert {
                 graphics.fill(new Rectangle2D.Float(0, 0, pgsize.width, pgsize.height));
                 slid.draw(graphics);
                 graphics.getPaint();
-                slideImage = com.lowagie.text.Image.getInstance(img, null);
+                slideImage = Image.getInstance(img, null);
 
                 //Adds slide image
                 PdfPTable table = new PdfPTable(1);
@@ -93,7 +95,8 @@ public class Convert {
                 pdfDocument.add(table);
 
                 //Adds note
-                pdfDocument.add(new Paragraph(note));
+                Font font = new Font(FontFamily.TIMES_ROMAN, fontSize);
+                pdfDocument.add(new Paragraph(note, font));
             }
         }
 
