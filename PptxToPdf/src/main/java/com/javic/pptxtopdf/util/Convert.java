@@ -8,6 +8,7 @@ package com.javic.pptxtopdf.util;
 import com.itextpdf.text.Font.FontFamily;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.Document;
+import com.itextpdf.text.FontFactory;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
@@ -35,13 +36,13 @@ public class Convert {
     // http://javapro.org/castellano/2017/07/25/convertir-archivo-powerpoint-pdf-java/
     public static void main(String[] args) {
         try {
-            Convert.convertPPTToPDF("C:\\Users\\acer\\Desktop\\test.pptx", "C:\\Users\\acer\\Desktop\\p1.pdf", ".pptx", StaticConstants.PORTRAIT, 6);
+            Convert.convertPPTToPDF("C:\\Users\\acer\\Desktop\\test.pptx", "C:\\Users\\acer\\Desktop\\p1.pdf", ".pptx", StaticConstants.PORTRAIT, "courier", 6);
         } catch (Exception ex) {
             Logger.getLogger(Convert.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    public static void convertPPTToPDF(String sourcePathFile, String destinationPath, String fileType, String orientation, int fontSize) throws Exception {
+    public static void convertPPTToPDF(String sourcePathFile, String destinationPath, String fileType, String orientation, String fontName, int fontSize) throws Exception {
         double zoom = 2;
         AffineTransform at = new AffineTransform();
         at.setToScale(zoom, zoom);
@@ -95,7 +96,8 @@ public class Convert {
                 pdfDocument.add(table);
 
                 //Adds note
-                Font font = new Font(FontFamily.TIMES_ROMAN, fontSize);
+                Font font = FontFactory.getFont(fontName);
+                font.setSize(fontSize);
                 pdfDocument.add(new Paragraph(note, font));
             }
         }
