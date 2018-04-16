@@ -142,6 +142,7 @@
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="selectOrientation" max="32767" attributes="0"/>
                           </Group>
+                          <Component id="jCheckBox1" alignment="1" max="32767" attributes="0"/>
                       </Group>
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
                       <Component id="jPanel7" max="32767" attributes="0"/>
@@ -176,6 +177,8 @@
                                   <Component id="jLabel6" min="-2" max="-2" attributes="0"/>
                                   <Component id="selectOrientation" min="-2" max="-2" attributes="0"/>
                               </Group>
+                              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                              <Component id="jCheckBox1" min="-2" max="-2" attributes="0"/>
                           </Group>
                       </Group>
                       <EmptySpace max="32767" attributes="0"/>
@@ -533,6 +536,17 @@
               <AuxValues>
                 <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
               </AuxValues>
+            </Component>
+            <Component class="javax.swing.JCheckBox" name="jCheckBox1">
+              <Properties>
+                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                  <Font name="Tahoma" size="11" style="1"/>
+                </Property>
+                <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                  <Color blue="ff" green="ff" red="ff" type="rgb"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="Only one PDF file"/>
+              </Properties>
             </Component>
           </SubComponents>
         </Container>

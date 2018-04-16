@@ -5,13 +5,21 @@
  */
 package com.javic.pptxtopdf.gui;
 
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
 import com.itextpdf.text.FontFactory;
+import com.itextpdf.text.Phrase;
+import com.itextpdf.text.pdf.ColumnText;
+import com.itextpdf.text.pdf.PdfContentByte;
+import com.itextpdf.text.pdf.PdfReader;
+import com.itextpdf.text.pdf.PdfStamper;
 import com.javic.pptxtopdf.util.Convert;
 import com.javic.pptxtopdf.util.StaticConstants;
 import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ItemEvent;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -27,6 +35,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.plaf.IconUIResource;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.pdfbox.multipdf.PDFMergerUtility;
 
 /**
  *
@@ -49,11 +58,11 @@ public class GUI extends javax.swing.JFrame {
         this.setResizable(false);
 
         ClassLoader classLoader = GUI.class.getClassLoader();
-        
+
         URL urlAcceptIcon = classLoader.getResource("acept.png");
         ImageIcon imgAcept = new ImageIcon(urlAcceptIcon);
         btnStart.setIcon(imgAcept);
-        
+
         URL urlCancelIcon = classLoader.getResource("cancel.png");
         ImageIcon imgCancel = new ImageIcon(urlCancelIcon);
         btnCancel.setIcon(imgCancel);
@@ -110,6 +119,7 @@ public class GUI extends javax.swing.JFrame {
         selectFontSize = new javax.swing.JComboBox<>();
         jLabel6 = new javax.swing.JLabel();
         selectOrientation = new javax.swing.JComboBox<>();
+        jCheckBox1 = new javax.swing.JCheckBox();
 
         jPanel3.setBackground(new java.awt.Color(255, 255, 255));
 
@@ -346,6 +356,10 @@ public class GUI extends javax.swing.JFrame {
         jLabel6.setForeground(new java.awt.Color(255, 255, 255));
         jLabel6.setText("Orientation");
 
+        jCheckBox1.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jCheckBox1.setForeground(new java.awt.Color(255, 255, 255));
+        jCheckBox1.setText("Only one PDF file");
+
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
         jPanel6Layout.setHorizontalGroup(
@@ -367,7 +381,8 @@ public class GUI extends javax.swing.JFrame {
                     .addGroup(jPanel6Layout.createSequentialGroup()
                         .addComponent(jLabel6)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(selectOrientation, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addComponent(selectOrientation, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jCheckBox1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
@@ -395,7 +410,9 @@ public class GUI extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel6)
-                            .addComponent(selectOrientation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addComponent(selectOrientation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jCheckBox1)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -444,15 +461,55 @@ public class GUI extends javax.swing.JFrame {
     }//GEN-LAST:event_selectFontSizeItemStateChanged
 
     private void btnStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStartActionPerformed
+        Runtime garbage = Runtime.getRuntime();
+        
+
         if (pptxFiles != null && outputDirectory != null) {
             try {
+                List<String> PDFlist = new ArrayList<String>();
+
                 for (File file : pptxFiles) {
                     String pathFile = file.getAbsolutePath();
                     String outputFile = outputDirectory + "/" + file.getName() + ".pdf";
+                    PDFlist.add(outputFile);
                     System.out.println(outputFile);
-                    Convert.convertPPTToPDF(pathFile, outputFile, ".pptx", selectOrientation.getSelectedItem().toString(), fontName, fontSize);
+                    Convert converter = new Convert();
+                    converter.convertPPTToPDF(pathFile, outputFile, ".pptx", selectOrientation.getSelectedItem().toString(), fontName, fontSize);
+                    
+                    converter=null;
+                    //Garbage collector
+                    garbage.gc();
                 }
 
+                if (jCheckBox1.isEnabled()) {
+                    //Merge PDF files
+                    PDFMergerUtility ut = new PDFMergerUtility();
+                    for (String filePath : PDFlist) {
+                        ut.addSource(filePath);
+                    }
+                    ut.setDestinationFileName(outputDirectory + "/finalFileConverted.pdf");
+                    ut.mergeDocuments();
+
+                    //Adds number of page
+                    String DEST = outputDirectory + "/FileMerged.pdf";
+                    String SRC = outputDirectory + "/finalFileConverted.pdf";
+                    File file = new File(DEST);
+                    file.getParentFile().mkdirs();
+                    manipulatePdf(SRC, DEST);
+
+                    //Delete the finalFileConverted file
+                    File fileToDelete = new File(SRC);
+                    fileToDelete.delete();
+
+                    //Delete individual files
+                    for (String filePath : PDFlist) {
+                        File f = new File(filePath);
+                        f.delete();
+                    }
+                }
+
+                //String outputFile = outputDirectory + "/FileConverted.pdf";
+                //Convert.convertPPTToPDF_oneFile(pptxFiles, outputFile, selectOrientation.getSelectedItem().toString(), fontName, fontSize);
                 clearFields();
                 JOptionPane.showMessageDialog(this, "Task completed.", "Success!", JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception ex) {
@@ -462,6 +519,20 @@ public class GUI extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Please select the input and output directory.", "Warning!", JOptionPane.WARNING_MESSAGE);
         }
     }//GEN-LAST:event_btnStartActionPerformed
+
+    public void manipulatePdf(String src, String dest) throws IOException, DocumentException {
+        PdfReader reader = new PdfReader(src);
+        int n = reader.getNumberOfPages();
+        PdfStamper stamper = new PdfStamper(reader, new FileOutputStream(dest));
+        PdfContentByte pagecontent;
+        for (int i = 0; i < n;) {
+            pagecontent = stamper.getOverContent(++i);
+            ColumnText.showTextAligned(pagecontent, Element.ALIGN_RIGHT,
+                    new Phrase(String.format("Página %s de %s", i, n)), 100, 20, 0);
+        }
+        stamper.close();
+        reader.close();
+    }
 
     public void clearFields() {
         pptxFiles = null;
@@ -578,6 +649,7 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JButton btnSelectInputDirectory;
     private javax.swing.JButton btnSelectOutputDirectory;
     private javax.swing.JButton btnStart;
+    private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

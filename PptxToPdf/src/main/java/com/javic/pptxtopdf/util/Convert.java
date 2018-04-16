@@ -5,9 +5,11 @@
  */
 package com.javic.pptxtopdf.util;
 
+import com.itextpdf.text.BadElementException;
 import com.itextpdf.text.Font.FontFamily;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.FontFactory;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfPTable;
@@ -34,16 +36,17 @@ import org.apache.poi.xslf.usermodel.XSLFTextShape;
 public class Convert {
 
     // http://javapro.org/castellano/2017/07/25/convertir-archivo-powerpoint-pdf-java/
-    public static void main(String[] args) {
+    /*public static void main(String[] args) {
         try {
             Convert.convertPPTToPDF("C:\\Users\\acer\\Desktop\\test.pptx", "C:\\Users\\acer\\Desktop\\p1.pdf", ".pptx", StaticConstants.PORTRAIT, "courier", 6);
         } catch (Exception ex) {
             Logger.getLogger(Convert.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
+    }*/
+    public void convertPPTToPDF(String sourcePathFile, String destinationPath, String fileType, String orientation, String fontName, int fontSize) throws Exception {
+        Runtime garbage = Runtime.getRuntime();
 
-    public static void convertPPTToPDF(String sourcePathFile, String destinationPath, String fileType, String orientation, String fontName, int fontSize) throws Exception {
-        double zoom = 2;
+        double zoom = 1;
         AffineTransform at = new AffineTransform();
         at.setToScale(zoom, zoom);
 
@@ -87,8 +90,9 @@ public class Convert {
                 graphics.setPaint(Color.white);
                 graphics.fill(new Rectangle2D.Float(0, 0, pgsize.width, pgsize.height));
                 slid.draw(graphics);
-                graphics.getPaint();
+                Paint paint = graphics.getPaint();
                 slideImage = Image.getInstance(img, null);
+                garbage.gc();
 
                 //Adds slide image
                 PdfPTable table = new PdfPTable(1);
@@ -99,7 +103,55 @@ public class Convert {
                 Font font = FontFactory.getFont(fontName);
                 font.setSize(fontSize);
                 pdfDocument.add(new Paragraph(note, font));
+
+                pdfDocument.newPage();
+                slid = null;
+                note=null;
+                font = null;
+                table = null;
+                slideImage = null;
+                graphics = null;
+                paint = null;
+                img = null;
+                slid = null;
+                garbage.gc();
             }
+
+            pdfDocument.close();
+            ppt = null;
+            pdfDocument = null;
+            garbage.gc();
+        }
+
+        byte[] barr = baos.toByteArray();
+        pdfWriter.close();
+        System.out.println("Powerpoint file converted to PDF successfully");
+
+        FileOutputStream outputStream = new FileOutputStream(new File(destinationPath));
+        outputStream.write(barr);
+
+        baos = null;
+        barr = null;
+        outputStream = null;
+        inputStream = null;
+        pdfWriter = null;
+        garbage.gc();
+    }
+
+    public static void convertPPTToPDF_oneFile(java.util.List<File> pptxFiles, String destinationPath, String orientation, String fontName, int fontSize) throws Exception {
+
+        //Final output file
+        Document pdfDocument = new Document();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        //writer
+        PdfWriter pdfWriter = PdfWriter.getInstance(pdfDocument, baos);
+        pdfWriter.open();
+        pdfDocument.open();
+
+        //Creates one PDF file from many PPTX
+        for (File file : pptxFiles) {
+            createPagesFromSlides(pdfWriter, pdfDocument, file.getAbsolutePath(), orientation, fontName, fontSize);
         }
 
         pdfDocument.close();
@@ -109,6 +161,66 @@ public class Convert {
 
         FileOutputStream outputStream = new FileOutputStream(new File(destinationPath));
         outputStream.write(barr);
+    }
+
+    public static void createPagesFromSlides(
+            PdfWriter pdfWriter,
+            Document pdfDocument,
+            String sourcePathFile,
+            String orientation,
+            String fontName,
+            int fontSize)
+            throws IOException, BadElementException, DocumentException {
+
+        FileInputStream inputStream = new FileInputStream(sourcePathFile);
+
+        double zoom = 2;
+        AffineTransform at = new AffineTransform();
+        at.setToScale(zoom, zoom);
+
+        //PdfPTable table = new PdfPTable(1);
+        Dimension pgsize = null;
+        Image slideImage = null;
+        BufferedImage img = null;
+
+        XMLSlideShow ppt = new XMLSlideShow(inputStream);
+        pgsize = ppt.getPageSize();
+
+        //pdfDocument.setPageSize(new com.lowagie.text.Rectangle((float) pgsize.getWidth(), (float) pgsize.getHeight()));
+        if (orientation.equals(StaticConstants.LANDSCAPE)) {
+            pdfDocument.setPageSize(new Rectangle((float) 792, (float) 612));
+        } else {
+            pdfDocument.setPageSize(new Rectangle((float) 612, (float) 792));
+        }
+        pdfWriter.open();
+        pdfDocument.open();
+
+        for (int i = 0; i < ppt.getSlides().size(); i++) {
+            XSLFSlide slid = ppt.getSlides().get(i);
+
+            //Gets note 
+            String note = getNoteFromSlide(ppt, slid);
+
+            img = new BufferedImage((int) Math.ceil(pgsize.width * zoom), (int) Math.ceil(pgsize.height * zoom), BufferedImage.TYPE_INT_RGB);
+            Graphics2D graphics = img.createGraphics();
+            graphics.setTransform(at);
+
+            graphics.setPaint(Color.white);
+            graphics.fill(new Rectangle2D.Float(0, 0, pgsize.width, pgsize.height));
+            slid.draw(graphics);
+            graphics.getPaint();
+            slideImage = Image.getInstance(img, null);
+
+            //Adds slide image
+            PdfPTable table = new PdfPTable(1);
+            table.addCell(slideImage);
+            pdfDocument.add(table);
+
+            //Adds note
+            Font font = FontFactory.getFont(fontName);
+            font.setSize(fontSize);
+            pdfDocument.add(new Paragraph(note, font));
+        }
     }
 
     /**
