@@ -13,6 +13,7 @@ import com.javic.pptxtopdf.util.StaticConstants;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
@@ -58,6 +59,10 @@ public class GUI extends javax.swing.JFrame {
         URL urlCancelIcon = classLoader.getResource("cancel.png");
         ImageIcon imgCancel = new ImageIcon(urlCancelIcon);
         btnCancel.setIcon(imgCancel);
+        
+        URL urlIconApp = classLoader.getResource("upwork.png");
+        ImageIcon imgUpwork = new ImageIcon(urlIconApp);
+        setIconImage(imgUpwork.getImage());
 
         //Fill fonts combo
         Set<String> fonts = new TreeSet<String>(FontFactory.getRegisteredFonts());
@@ -473,30 +478,11 @@ public class GUI extends javax.swing.JFrame {
                 }
 
                 if (jCheckBox1.isSelected()) {
-                    //Merge PDF files
-                    PDFMergerUtility ut = new PDFMergerUtility();
-                    for (String filePath : PDFlist) {
-                        ut.addSource(filePath);
-                    }
-                    ut.setDestinationFileName(outputDirectory + "/finalFileConverted.pdf");
-                    ut.mergeDocuments();
-
-                    //Adds number of page
-                    String DEST = outputDirectory + "/FileMerged.pdf";
-                    String SRC = outputDirectory + "/finalFileConverted.pdf";
-                    File file = new File(DEST);
-                    file.getParentFile().mkdirs();
-                    manipulatePdf(SRC, DEST);
-
-                    //Delete the finalFileConverted file
-                    File fileToDelete = new File(SRC);
-                    fileToDelete.delete();
-
-                    //Delete individual files
-                    for (String filePath : PDFlist) {
-                        File f = new File(filePath);
-                        f.delete();
-                    }
+                    //Generate file merged with pagination and delete individual files generated
+                    generateOneFile(PDFlist);
+                } else {
+                    //Adds pagination to individual files
+                    addPagination(PDFlist);
                 }
 
                 //String outputFile = outputDirectory + "/FileConverted.pdf";
@@ -510,6 +496,53 @@ public class GUI extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Please select the input and output directory.", "Warning!", JOptionPane.WARNING_MESSAGE);
         }
     }//GEN-LAST:event_btnStartActionPerformed
+
+    public void generateOneFile(List<String> PDFlist) throws FileNotFoundException, IOException, DocumentException {
+        //Merge PDF files
+        PDFMergerUtility ut = new PDFMergerUtility();
+        for (String filePath : PDFlist) {
+            ut.addSource(filePath);
+        }
+        ut.setDestinationFileName(outputDirectory + "/finalFileConverted.pdf");
+        ut.mergeDocuments();
+
+        //Adds number of page
+        String DEST = outputDirectory + "/FileMerged.pdf";
+        String SRC = outputDirectory + "/finalFileConverted.pdf";
+        File file = new File(DEST);
+        file.getParentFile().mkdirs();
+        manipulatePdf(SRC, DEST);
+
+        //Delete the finalFileConverted file
+        File fileToDelete = new File(SRC);
+        fileToDelete.delete();
+
+        //Delete individual files
+        for (String filePath : PDFlist) {
+            File f = new File(filePath);
+            f.delete();
+        }
+    }
+
+    public void addPagination(List<String> PDFlist) throws IOException, DocumentException {
+        for (int i = 0; i < PDFlist.size(); i++) {
+            //Adds number of page
+            String DEST = outputDirectory + "/" + i + ".pdf";
+            String SRC = PDFlist.get(i);
+            File filePagination = new File(DEST);
+            filePagination.getParentFile().mkdirs();
+            manipulatePdf(SRC, DEST);
+
+            //Delete files without pagination
+            File fileWithoutPagination = new File(SRC);
+            //String nameFile = fileWithoutPagination.getName();
+            fileWithoutPagination.delete();
+
+            //Rename file with pagination
+            filePagination.renameTo(fileWithoutPagination);
+        }
+
+    }
 
     public void manipulatePdf(String src, String dest) throws IOException, DocumentException {
         PdfReader reader = new PdfReader(src);

@@ -1,7 +1,6 @@
 package com.javic.pptxtopdf.util;
 
 import com.itextpdf.text.BadElementException;
-import com.itextpdf.text.Font.FontFamily;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;

@@ -1,13 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.javic.pptxtopdf.util;
 
 /**
- *
- * @author acer
+ * @version 1.0
+ * @since 14/04/2018
+ * @author Javier Sánchez, Upwork
  */
 public class StaticConstants {
 
