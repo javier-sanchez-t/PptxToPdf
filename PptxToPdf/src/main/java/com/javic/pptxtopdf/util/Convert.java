@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.javic.pptxtopdf.util;
 
 import com.itextpdf.text.BadElementException;
@@ -24,25 +19,16 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.poi.xslf.usermodel.XSLFNotes;
 import org.apache.poi.xslf.usermodel.XSLFTextShape;
 
 /**
- *
- * @author acer
+ * @version 1.0
+ * @since 14/04/2018
+ * @author Javier Sánchez, Upwork
  */
 public class Convert {
 
-    // http://javapro.org/castellano/2017/07/25/convertir-archivo-powerpoint-pdf-java/
-    /*public static void main(String[] args) {
-        try {
-            Convert.convertPPTToPDF("C:\\Users\\acer\\Desktop\\test.pptx", "C:\\Users\\acer\\Desktop\\p1.pdf", ".pptx", StaticConstants.PORTRAIT, "courier", 6);
-        } catch (Exception ex) {
-            Logger.getLogger(Convert.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }*/
     public void convertPPTToPDF(String sourcePathFile, String destinationPath, String fileType, String orientation, String fontName, int fontSize) throws Exception {
         Runtime garbage = Runtime.getRuntime();
 
@@ -68,7 +54,7 @@ public class Convert {
             XMLSlideShow ppt = new XMLSlideShow(inputStream);
             pgsize = ppt.getPageSize();
 
-            //pdfDocument.setPageSize(new com.lowagie.text.Rectangle((float) pgsize.getWidth(), (float) pgsize.getHeight()));
+            //Defines page orientation 
             if (orientation.equals(StaticConstants.LANDSCAPE)) {
                 pdfDocument.setPageSize(new Rectangle((float) 792, (float) 612));
             } else {
@@ -106,7 +92,7 @@ public class Convert {
 
                 pdfDocument.newPage();
                 slid = null;
-                note=null;
+                note = null;
                 font = null;
                 table = null;
                 slideImage = null;

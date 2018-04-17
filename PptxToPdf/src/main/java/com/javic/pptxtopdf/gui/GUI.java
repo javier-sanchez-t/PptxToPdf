@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.javic.pptxtopdf.gui;
 
 import com.itextpdf.text.DocumentException;
@@ -16,7 +11,6 @@ import com.itextpdf.text.pdf.PdfStamper;
 import com.javic.pptxtopdf.util.Convert;
 import com.javic.pptxtopdf.util.StaticConstants;
 import java.awt.Font;
-import java.awt.Image;
 import java.awt.event.ItemEvent;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -28,18 +22,16 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import javax.swing.plaf.IconUIResource;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 
 /**
- *
- * @author acer
+ * @version 1.0
+ * @since 14/04/2018
+ * @author Javier Sánchez, Upwork
  */
 public class GUI extends javax.swing.JFrame {
 
@@ -462,7 +454,6 @@ public class GUI extends javax.swing.JFrame {
 
     private void btnStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStartActionPerformed
         Runtime garbage = Runtime.getRuntime();
-        
 
         if (pptxFiles != null && outputDirectory != null) {
             try {
@@ -475,13 +466,13 @@ public class GUI extends javax.swing.JFrame {
                     System.out.println(outputFile);
                     Convert converter = new Convert();
                     converter.convertPPTToPDF(pathFile, outputFile, ".pptx", selectOrientation.getSelectedItem().toString(), fontName, fontSize);
-                    
-                    converter=null;
+
+                    converter = null;
                     //Garbage collector
                     garbage.gc();
                 }
 
-                if (jCheckBox1.isEnabled()) {
+                if (jCheckBox1.isSelected()) {
                     //Merge PDF files
                     PDFMergerUtility ut = new PDFMergerUtility();
                     for (String filePath : PDFlist) {
@@ -528,7 +519,7 @@ public class GUI extends javax.swing.JFrame {
         for (int i = 0; i < n;) {
             pagecontent = stamper.getOverContent(++i);
             ColumnText.showTextAligned(pagecontent, Element.ALIGN_RIGHT,
-                    new Phrase(String.format("Página %s de %s", i, n)), 100, 20, 0);
+                    new Phrase(String.format("Page %s of %s", i, n)), 100, 20, 0);
         }
         stamper.close();
         reader.close();
